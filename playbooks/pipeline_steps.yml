@@ -1,0 +1,60 @@
+---
+- name: CI/CD Workflow for Ansible Role
+  hosts: localhost
+  tasks:
+
+    # 1. Run unit tests - plugins and modules only
+    - name: Run unit tests
+      ansible.builtin.command: /path/to/unit_test_script.sh
+      register: unit_test_result
+      failed_when: unit_test_result.rc != 0
+
+    # 2. Run integration tests
+    - name: Run integration tests
+      ansible.builtin.command: /path/to/integration_test_script.sh
+      register: integration_test_result
+      failed_when: integration_test_result.rc != 0
+
+    # 3. Run Ansible sanity tests - collections only
+    - name: Run Ansible sanity tests
+      ansible.builtin.command: ansible-test sanity
+      register: sanity_test_result
+      failed_when: sanity_test_result.rc != 0
+
+    # 4. Run ansible-lint
+    - name: Run ansible-lint
+      ansible.builtin.command: ansible-lint /path/to/role_or_playbook
+      register: lint_result
+      failed_when: lint_result.rc != 0
+
+    # 5. Run molecule
+    - name: Run molecule tests
+      ansible.builtin.command: molecule test
+      args:
+        chdir: /path/to/molecule/directory/
+      register: molecule_result
+      failed_when: molecule_result.rc != 0
+
+    # 6. Update version/changelog
+    - name: Update changelog/version as needed
+      ansible.builtin.command: /path/to/version_and_changelog_update_script.sh
+
+    # 7. Create tarball
+    - name: Create tarball of the role
+      ansible.builtin.command: tar -czvf ansible-role-name.tar.gz /path/to/ansible/role/
+      args:
+        chdir: /path/to/destination/directory/
+    
+    # 8. Publish to Ansible Galaxy
+    - name: Publish role to Ansible Galaxy
+      ansible.builtin.command: ansible-galaxy collection publish path/to/my_namespace-my_collection-1.0.0.tar.gz --api-key={{SECRET}}
+
+      environment:
+        SECRET: "your_ansible_galaxy_token"
+
+    # 9. Publish to Private Automation Hub
+    - name: Publish role to Private Ansible Galaxy
+      ansible.builtin.command: ansible-galaxy collection publish path/to/my_namespace-my_collection-1.0.0.tar.gz --api-key={{SECRET}}
+
+      environment:
+        SECRET: "your_ansible_galaxy_token"
